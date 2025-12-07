@@ -65,6 +65,45 @@ pnpm run build:client
 pnpm run build:server
 ```
 
+### Docker 部署
+
+项目支持使用 Docker 进行部署。
+
+#### 先决条件
+- Docker >= 20.10
+- Docker Compose >= 2.0
+
+#### 使用 Docker Compose 部署
+
+```bash
+# 构建并启动服务
+docker-compose up --build
+
+# 后台运行
+docker-compose up --build -d
+
+# 停止服务
+docker-compose down
+```
+
+服务将在以下端口运行：
+- 前端: http://localhost:8080
+- 后端: http://localhost:3000
+
+#### 单独构建镜像
+
+```bash
+# 构建前端镜像
+docker build -f Dockerfile.client -t reelflix-client .
+
+# 构建后端镜像
+docker build -f Dockerfile.server -t reelflix-server .
+
+# 运行容器
+docker run -p 8080:80 reelflix-client
+docker run -p 3000:3000 reelflix-server
+```
+
 ## 项目特点
 
 1. **现代化技术栈** - 使用最新的 React 19 和 Express 5，完全基于 TypeScript
