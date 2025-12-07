@@ -52,16 +52,20 @@ PORT=3000
 
 ```
 # API Sources Configuration
+# 标识总共的视频源数量
 REEL_FLIEX_SOURCES_COUNT=3
 
-REEL_FLIX_SOURCE_1_NAME=极速资源
-REEL_FLIX_SOURCE_1_URL=https://jszyapi.com/api.php/provide/vod/
+# 具体视频源的名称和 URL
+# 格式如下所示：
+# 必须按照 REEL_FLIX_SOURCE_{n}_NAME 和 REEL_FLIX_SOURCE_{n}_URL 的格式定义
+REEL_FLIX_SOURCE_1_NAME=example1
+REEL_FLIX_SOURCE_1_URL=https://api.example1.com/provide/vod/
 
-REEL_FLIX_SOURCE_2_NAME=金鹰资源
-REEL_FLIX_SOURCE_2_URL=https://jyzyapi.com/provide/vod/from/jinyingm3u8/at/json
+REEL_FLIX_SOURCE_2_NAME=example2
+REEL_FLIX_SOURCE_2_URL=https://api.example2.com/provide/vod/
 
-REEL_FLIX_SOURCE_3_NAME=茅台资源
-REEL_FLIX_SOURCE_3_URL=https://caiji.maotaizy.cc/api.php/provide/vod/from/mtm3u8/at/josn/
+REEL_FLIX_SOURCE_3_NAME=example3
+REEL_FLIX_SOURCE_3_URL=https://api.example3.com/provide/vod/
 ```
 
 ### 启动开发服务器
