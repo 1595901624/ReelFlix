@@ -51,6 +51,18 @@ PORT=3000
 在 `client/` 目录下创建一个 `.env` 文件，添加以下环境变量：
 
 ```
+# API Sources Configuration
+REEL_FLIEX_SOURCES_COUNT=3
+
+REEL_FLIX_SOURCE_1_NAME=极速资源
+REEL_FLIX_SOURCE_1_URL=https://jszyapi.com/api.php/provide/vod/
+
+REEL_FLIX_SOURCE_2_NAME=金鹰资源
+REEL_FLIX_SOURCE_2_URL=https://jyzyapi.com/provide/vod/from/jinyingm3u8/at/json
+
+REEL_FLIX_SOURCE_3_NAME=茅台资源
+REEL_FLIX_SOURCE_3_URL=https://caiji.maotaizy.cc/api.php/provide/vod/from/mtm3u8/at/josn/
+```
 
 ### 启动开发服务器
 
