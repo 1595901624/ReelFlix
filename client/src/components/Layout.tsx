@@ -16,6 +16,7 @@ import {
 } from "@heroui/react";
 import { useSettings } from '../context/SettingsContext';
 import SettingsModal from './SettingsModal';
+import HelpAndFeedbackModal from './HelpAndFeedbackModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -28,6 +29,7 @@ export default function Layout({ children }: LayoutProps) {
   const [searchParams] = useSearchParams();
   const currentCategory = searchParams.get('category');
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen: isHelpOpen, onOpen: onOpenHelp, onOpenChange: onOpenChangeHelp } = useDisclosure();
   const [searchQuery, setSearchQuery] = useState('');
 
   const mainCategories = useMemo(() => {
@@ -43,6 +45,7 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background text-foreground dark flex flex-col">
       <SettingsModal isOpen={isOpen} onOpenChange={onOpenChange} />
+      <HelpAndFeedbackModal isOpen={isHelpOpen} onOpenChange={onOpenChangeHelp} />
       
       {/* Navigation Bar */}
       <Navbar isBordered maxWidth="xl" className="bg-background/70 backdrop-blur-md">
@@ -113,7 +116,7 @@ export default function Layout({ children }: LayoutProps) {
                 <p className="font-semibold text-xs text-default-500">{currentSource.name}</p>
               </DropdownItem>
               <DropdownItem key="settings" onPress={onOpen}>设置</DropdownItem>
-              <DropdownItem key="help_and_feedback">帮助与反馈</DropdownItem>
+              <DropdownItem key="help_and_feedback" onPress={onOpenHelp}>帮助与反馈</DropdownItem>
               {/* <DropdownItem key="logout" color="danger">
                 退出登录
               </DropdownItem> */}
