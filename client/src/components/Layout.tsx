@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   Navbar, 
   NavbarBrand, 
@@ -22,10 +22,17 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { currentSource } = useSettings();
+  const { currentSource, categories } = useSettings();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const currentCategory = searchParams.get('category');
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const mainCategories = useMemo(() => {
+    return categories.filter(cat => cat.type_pid === 0);
+  }, [categories]);
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
@@ -44,26 +51,26 @@ export default function Layout({ children }: LayoutProps) {
             <p className="hidden sm:block font-bold text-inherit text-2xl bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">ReelFlix</p>
           </NavbarBrand>
           <NavbarContent className="hidden sm:flex gap-3">
-            <NavbarItem isActive>
-              <Link color="secondary" href="#" onPress={() => navigate('/')}>
+            <NavbarItem isActive={location.pathname === '/' && !currentCategory}>
+              <Link 
+                color={location.pathname === '/' && !currentCategory ? "secondary" : "foreground"} 
+                href="#" 
+                onPress={() => navigate('/')}
+              >
                 首页
               </Link>
             </NavbarItem>
-            <NavbarItem>
-              <Link href="#" color="foreground">
-                电影
-              </Link>
-            </NavbarItem>
-            <NavbarItem>
-              <Link href="#" color="foreground">
-                剧集
-              </Link>
-            </NavbarItem>
-            <NavbarItem>
-              <Link href="#" color="foreground">
-                综艺
-              </Link>
-            </NavbarItem>
+            {mainCategories.map(cat => (
+              <NavbarItem key={cat.type_id} isActive={currentCategory === cat.type_id.toString()}>
+                <Link 
+                  color={currentCategory === cat.type_id.toString() ? "secondary" : "foreground"} 
+                  href="#" 
+                  onPress={() => navigate(`/?category=${cat.type_id}`)}
+                >
+                  {cat.type_name}
+                </Link>
+              </NavbarItem>
+            ))}
           </NavbarContent>
         </NavbarContent>
 

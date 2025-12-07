@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Card,
   CardBody,
@@ -9,39 +9,25 @@ import {
   Chip,
   Spinner,
   Link,
-  useDisclosure,
-  Tabs,
-  Tab
+  useDisclosure
 } from "@heroui/react";
 import { useSettings } from '../../context/SettingsContext';
-import { fetchVideoList, fetchCategories } from '../../services/api';
-import { VideoItem, Category } from '../../types/video';
+import { fetchVideoList } from '../../services/api';
+import { VideoItem } from '../../types/video';
 import SettingsModal from '../../components/SettingsModal';
 
 export default function HomePage() {
-  const { currentSource } = useSettings();
+  const { currentSource, categories } = useSettings();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const selectedTab = searchParams.get('category') || 'home';
+  
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [activeSlide, setActiveSlide] = useState(0);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedTab, setSelectedTab] = useState<string>('home');
   const [selectedSubCategory, setSelectedSubCategory] = useState<number | null>(null);
-
-  // Fetch categories on mount
-  useEffect(() => {
-    fetchCategories(currentSource.url)
-      .then(res => {
-        if (res.class) {
-          setCategories(res.class);
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch categories:', err);
-      });
-  }, [currentSource]);
 
   // Main categories (type_pid === 0)
   const mainCategories = useMemo(() => {
@@ -55,6 +41,11 @@ export default function HomePage() {
     if (!mainCat) return [];
     return categories.filter(cat => cat.type_pid === mainCat.type_id);
   }, [selectedTab, categories, mainCategories]);
+
+  // Reset sub-category when tab changes
+  useEffect(() => {
+    setSelectedSubCategory(null);
+  }, [selectedTab]);
 
   // Get type IDs to fetch
   const getTypeIdsForFetch = (): number[] | undefined => {
@@ -104,30 +95,6 @@ export default function HomePage() {
     <div className="container mx-auto max-w-7xl px-6 pt-6">
       <SettingsModal isOpen={isOpen} onOpenChange={onOpenChange} />
       
-      {/* Category Tabs */}
-      <div className="mb-6">
-        <Tabs 
-          selectedKey={selectedTab} 
-          onSelectionChange={(key) => {
-            setSelectedTab(key.toString());
-            setSelectedSubCategory(null);
-          }}
-          variant="underlined"
-          color="primary"
-          classNames={{
-            tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-            cursor: "w-full bg-primary",
-            tab: "max-w-fit px-0 h-12",
-            tabContent: "group-data-[selected=true]:text-primary"
-          }}
-        >
-          <Tab key="home" title="首页" />
-          {mainCategories.map(cat => (
-            <Tab key={cat.type_id.toString()} title={cat.type_name} />
-          ))}
-        </Tabs>
-      </div>
-
       {/* Sub-category Filters */}
       {subCategories.length > 0 && (
         <div className="mb-6 flex flex-wrap gap-2">

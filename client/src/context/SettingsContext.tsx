@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Category } from '../types/video';
+import { fetchCategories } from '../services/api';
 
 export interface ApiSource {
   name: string;
@@ -9,6 +11,7 @@ interface SettingsContextType {
   sources: ApiSource[];
   currentSourceIndex: number;
   currentSource: ApiSource;
+  categories: Category[];
   addSource: (source: ApiSource) => void;
   removeSource: (index: number) => void;
   setCurrentSourceIndex: (index: number) => void;
@@ -31,6 +34,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return saved ? parseInt(saved, 10) : 0;
   });
 
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const currentSource = sources[currentSourceIndex] || sources[0];
+
   useEffect(() => {
     localStorage.setItem('reelFlix_sources', JSON.stringify(sources));
   }, [sources]);
@@ -38,6 +45,37 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     localStorage.setItem('reelFlix_currentSourceIndex', currentSourceIndex.toString());
   }, [currentSourceIndex]);
+
+  useEffect(() => {
+    const fetchSourceCategories = async () => {
+      if (!currentSource?.url) return;
+
+      const cacheKey = `reelFlix_categories_${currentSource.url}`;
+      const cached = localStorage.getItem(cacheKey);
+
+      if (cached) {
+        try {
+          setCategories(JSON.parse(cached));
+          return;
+        } catch (e) {
+          console.error("Failed to parse cached categories", e);
+          localStorage.removeItem(cacheKey);
+        }
+      }
+
+      try {
+        const res = await fetchCategories(currentSource.url);
+        if (res.class) {
+          setCategories(res.class);
+          localStorage.setItem(cacheKey, JSON.stringify(res.class));
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+
+    fetchSourceCategories();
+  }, [currentSource]);
 
   const addSource = (source: ApiSource) => {
     setSources([...sources, source]);
@@ -51,13 +89,12 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const currentSource = sources[currentSourceIndex] || sources[0];
-
   return (
     <SettingsContext.Provider value={{ 
       sources, 
       currentSourceIndex, 
       currentSource, 
+      categories,
       addSource, 
       removeSource, 
       setCurrentSourceIndex 
