@@ -131,6 +131,56 @@ docker run -p 8080:80 reelflix-client
 docker run -p 3000:3000 reelflix-server
 ```
 
+### Vercel 部署
+
+项目支持使用 Vercel 进行快速部署前端应用。
+
+#### 前端部署到 Vercel
+
+   在项目根目录创建 `vercel.json` 文件：
+   ```json
+   {
+     "buildCommand": "pnpm run build",
+     "outputDirectory": "dist",
+     "installCommand": "pnpm install",
+     "framework": null,
+     "rewrites": [
+       {
+         "source": "/api/:path*",
+         "destination": "/api/:path*"
+       }
+     ]
+   }
+   ```
+#### 后端部署选项
+
+由于 Vercel 主要用于前端部署，建议将后端部署到以下平台之一：
+
+- **Railway**: `railway up`
+- **Render**: 连接 GitHub 仓库自动部署
+- **Heroku**: `git push heroku main`
+- **Vercel Serverless Functions**: 将后端 API 转换为 serverless functions
+
+#### 完整部署流程
+
+1. **部署后端**
+   ```bash
+   # 例如部署到 Railway
+   cd server
+   railway login
+   railway link
+   railway up
+   ```
+
+2. **更新前端环境变量**
+   在 Vercel 中设置 `VITE_API_BASE_URL` 为你的后端 API 地址
+
+3. **重新部署前端**
+   ```bash
+   cd client
+   vercel --prod
+   ```
+
 ## 项目特点
 
 1. **现代化技术栈** - 使用最新的 React 19 和 Express 5，完全基于 TypeScript
