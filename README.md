@@ -41,7 +41,7 @@
 pnpm install
 ```
 
-### 环境配置(可选)
+### 环境配置(以下可选)
 在 `server/` 目录下创建一个 `.env` 文件，添加以下环境变量：
 
 ```
@@ -68,12 +68,15 @@ REEL_FLIX_SOURCE_3_NAME=example3
 REEL_FLIX_SOURCE_3_URL=https://api.example3.com/provide/vod/
 ```
 
-### 启动开发服务器
+### 本地运行
 
 ```bash
+# 安装所有子项目依赖
+pnpm install-all
 # 同时启动前端和服务端
 pnpm run dev
 
+## 其它命令
 # 只启动前端
 pnpm run dev:client
 
@@ -92,7 +95,7 @@ pnpm run build:client
 pnpm run build:server
 ```
 
-### Docker 部署
+### Docker 部署（未测试）
 
 项目支持使用 Docker 进行部署。
 
@@ -131,55 +134,14 @@ docker run -p 8080:80 reelflix-client
 docker run -p 3000:3000 reelflix-server
 ```
 
-### Vercel 部署
+### Vercel 部署（推荐）
 
-项目支持使用 Vercel 进行快速部署前端应用。
+项目支持使用 Vercel 部署。
 
-#### 前端部署到 Vercel
+1. git fork 本项目到您的 GitHub 账户。
+2. 登录 Vercel 并导入您的仓库。
+3. 直接 Deploy
 
-   在项目根目录创建 `vercel.json` 文件：
-   ```json
-   {
-     "buildCommand": "pnpm run build",
-     "outputDirectory": "dist",
-     "installCommand": "pnpm install",
-     "framework": null,
-     "rewrites": [
-       {
-         "source": "/api/:path*",
-         "destination": "/api/:path*"
-       }
-     ]
-   }
-   ```
-#### 后端部署选项
-
-由于 Vercel 主要用于前端部署，建议将后端部署到以下平台之一：
-
-- **Railway**: `railway up`
-- **Render**: 连接 GitHub 仓库自动部署
-- **Heroku**: `git push heroku main`
-- **Vercel Serverless Functions**: 将后端 API 转换为 serverless functions
-
-#### 完整部署流程
-
-1. **部署后端**
-   ```bash
-   # 例如部署到 Railway
-   cd server
-   railway login
-   railway link
-   railway up
-   ```
-
-2. **更新前端环境变量**
-   在 Vercel 中设置 `VITE_API_BASE_URL` 为你的后端 API 地址
-
-3. **重新部署前端**
-   ```bash
-   cd client
-   vercel --prod
-   ```
 
 ## 项目特点
 
