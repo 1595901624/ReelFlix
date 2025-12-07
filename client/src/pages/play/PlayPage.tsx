@@ -60,13 +60,13 @@ export default function PlayPage() {
       const episodes = urlGroup.split('#').map(ep => {
         const [name, url] = ep.split('$');
         return { name, url };
-      }).filter(ep => ep.url); // Filter out invalid ones
+      }).filter(ep => ep.url && ep.url.endsWith('.m3u8')); // Filter to only .m3u8 URLs
       
       return {
         name: from,
         episodes
       };
-    });
+    }).filter(group => group.episodes.length > 0); // Filter out groups with no valid episodes
   }, [video]);
 
   const currentEpisode = playGroups[currentGroupIndex]?.episodes[currentEpisodeIndex];
@@ -77,19 +77,16 @@ export default function PlayPage() {
   return (
     <div className="bg-background text-foreground dark p-6">
       <div className="container mx-auto max-w-7xl">
-        <div className="mb-4">
-            <Link to="/" className="text-primary hover:underline flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-                返回首页
-            </Link>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {currentEpisode ? (
-              <Player src={currentEpisode.url} poster={video.vod_pic} />
+              <>
+                <div className="text-lg font-medium text-default-700 dark:text-default-300">
+                  正在播放: {video.vod_name} - {currentEpisode.name}
+                </div>
+                <Player src={currentEpisode.url} poster={video.vod_pic} />
+              </>
             ) : (
               <div className="aspect-video bg-black flex items-center justify-center text-white rounded-xl">
                 No playable source found

@@ -158,7 +158,7 @@ export default function HomePage() {
                           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                       </CardBody>
                       <CardFooter className="text-small justify-between flex-col items-start px-1 pt-2 pb-0">
-                          <b className="text-default-900 dark:text-default-100 line-clamp-1 text-lg">{video.vod_name}</b>
+                          <b className="text-default-900 dark:text-default-700 line-clamp-1 text-lg">{video.vod_name}</b>
                           <p className="text-default-500 text-xs">{video.type_name} • {video.vod_year}</p>
                       </CardFooter>
                   </Card>
