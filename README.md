@@ -2,7 +2,7 @@
 
 这是一个使用 React + Vite + HeroUI + Tailwind CSS 构建的前端和 Express (TypeScript) 构建的服务端的在线影视平台。该项目旨在为用户提供一个简洁、高效且响应迅速的影视内容浏览和播放体验。并不涉及任何版权内容的存储或分发，仅作为个人视频内容的聚合和展示平台。
 
-![项目预览](https://placehold.co/800x400?text=ReelFlix+Preview)
+![项目预览](./demo/demo.png)
 
 ## 项目结构
 
