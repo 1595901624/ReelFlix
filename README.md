@@ -121,6 +121,13 @@ ReelFlix 仅作为视频内容聚合平台，不对所展示内容的版权、�
 
 如果您遇到任何问题或有建议，请通过 GitHub 反馈：[https://github.com/1595901624/ReelFlix](https://github.com/1595901624/ReelFlix)
 
+## TODO
+
+- [ ] PC 版 coming soon
+- [ ] 添加更多视频源支持
+- [ ] 优化移动端体验
+- [ ] 实现用户收藏功能
+
 ## 项目文档
 
 详细的项目说明请查看 [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) 文件。
