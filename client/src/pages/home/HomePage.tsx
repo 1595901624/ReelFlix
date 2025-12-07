@@ -144,7 +144,7 @@ export default function HomePage() {
               />
               
               {/* Content Overlay */}
-              <div className="absolute bottom-0 left-0 z-20 p-8 md:p-12 w-full md:w-2/3 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+              <div className="absolute bottom-0 left-0 z-20 p-8 md:p-12 w-full bg-gradient-to-t from-black/90 via-black/50 to-transparent">
                   <div className="flex gap-2 mb-3">
                       <Chip color="primary" variant="shadow" size="sm">{currentFeatured.type_name}</Chip>
                       <Chip color="default" variant="flat" size="sm">{currentFeatured.vod_year}</Chip>
