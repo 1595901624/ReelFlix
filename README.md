@@ -74,16 +74,13 @@ pnpm run build:server
 5. **开发友好** - 支持热重载和并发开发
 6. **可扩展性** - 模块化的代码结构便于功能扩展
 
-## API 接口
+## 免责声明
 
-基础 URL: `http://localhost:3000`
+ReelFlix 仅作为视频内容聚合平台，不对所展示内容的版权、合法性或准确性承担任何责任。用户应自行评估并承担使用风险。
 
-### 电影相关接口
-- `GET /api/movies` - 获取电影列表
-- `GET /api/movies/:id` - 获取特定电影
-- `POST /api/movies` - 添加新电影
-- `PUT /api/movies/:id` - 更新电影信息
-- `DELETE /api/movies/:id` - 删除电影
+请谨慎对待应用内外的广告信息。本平台不对广告内容的真实性或可靠性负责。
+
+如果您遇到任何问题或有建议，请通过 GitHub 反馈：[https://github.com/1595901624/ReelFlix](https://github.com/1595901624/ReelFlix)
 
 ## 项目文档
 

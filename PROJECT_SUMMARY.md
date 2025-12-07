@@ -89,18 +89,6 @@ pnpm run build:server
 ```bash
 pnpm run start
 ```
-
-## API 接口
-
-基础 URL: `http://localhost:3000`
-
-### 电影相关接口
-- `GET /api/movies` - 获取电影列表
-- `GET /api/movies/:id` - 获取特定电影
-- `POST /api/movies` - 添加新电影
-- `PUT /api/movies/:id` - 更新电影信息
-- `DELETE /api/movies/:id` - 删除电影
-
 ## 环境配置
 
 ### 前端
