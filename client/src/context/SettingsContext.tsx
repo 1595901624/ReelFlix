@@ -18,15 +18,18 @@ interface SettingsContextType {
 }
 
 const defaultSources: ApiSource[] = (() => {
-  try {
-    const envSources = import.meta.env.VITE_API_SOURCES;
-    if (envSources) {
-      return JSON.parse(envSources);
+  const count = parseInt(import.meta.env.REEL_FLIEX_SOURCES_COUNT || '0', 10);
+  const sources: ApiSource[] = [];
+  
+  for (let i = 1; i <= count; i++) {
+    const name = import.meta.env[`REEL_FLIX_SOURCE_${i}_NAME`];
+    const url = import.meta.env[`REEL_FLIX_SOURCE_${i}_URL`];
+    if (name && url) {
+      sources.push({ name, url });
     }
-  } catch (e) {
-    console.error('Failed to parse VITE_API_SOURCES', e);
   }
-  return [];
+  
+  return sources;
 })();
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
