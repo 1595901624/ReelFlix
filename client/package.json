@@ -14,9 +14,12 @@
     "@heroui/react": "2.8.5",
     "@heroui/system": "2.4.23",
     "@heroui/theme": "2.4.23",
+    "axios": "^1.13.2",
     "framer-motion": "^12.23.25",
+    "hls.js": "^1.6.15",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.10.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
