@@ -109,6 +109,16 @@ export default function SearchPage() {
     return counts;
   }, [results]);
 
+  const filterItems = useMemo(() => [
+    { key: "all", label: "全部", count: results.length, icon: "🌐" },
+    ...sources.map(source => ({
+      key: source.name,
+      label: source.name,
+      count: sourceCounts[source.name] || 0,
+      icon: "📺"
+    }))
+  ], [sources, results.length, sourceCounts]);
+
   return (
     <div className="container mx-auto max-w-7xl px-6 pt-6 flex flex-col md:flex-row gap-6 min-h-[80vh]">
       {/* Sidebar - Source Filter */}
@@ -118,26 +128,21 @@ export default function SearchPage() {
           <Card className="w-full p-2">
             <Listbox 
               aria-label="Source Filters"
-              onAction={(key) => setSelectedSourceFilter(key as string)}
-              selectionMode="single"
+              items={filterItems}
               selectedKeys={new Set([selectedSourceFilter])}
+              selectionMode="single"
               variant="flat"
               color="primary"
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string;
+                setSelectedSourceFilter(selected);
+              }}
             >
-              <ListboxItem key="all" startContent={<span className="text-lg">🌐</span>}>
-                <div className="flex justify-between items-center w-full">
-                  <span>全部</span>
-                  <Chip size="sm" variant="flat">{results.length}</Chip>
-                </div>
-              </ListboxItem>
-              {sources.map((source) => (
-                <ListboxItem key={source.name} startContent={<span className="text-lg">📺</span>}>
-                  <div className="flex justify-between items-center w-full">
-                    <span>{source.name}</span>
-                    <Chip size="sm" variant="flat">{sourceCounts[source.name] || 0}</Chip>
-                  </div>
+              {(item) => (
+                <ListboxItem key={item.key} startContent={<span className="text-lg">{item.icon}</span>} endContent={<Chip size="sm" variant="flat">{item.count}</Chip>}>
+                  {item.label}
                 </ListboxItem>
-              ))}
+              )}
             </Listbox>
           </Card>
         </div>
