@@ -35,11 +35,6 @@
 - Node.js >= 19
 - pnpm >= 10
 
-### 安装依赖
-
-```bash
-pnpm install
-```
 
 ### 本地运行
 
