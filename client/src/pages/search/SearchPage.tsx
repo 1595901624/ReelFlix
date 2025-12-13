@@ -22,13 +22,6 @@ interface SearchResultItem extends VideoItem {
   sourceUrl: string;
 }
 
-// 用于跟踪每个源的搜索状态
-interface SourceSearchStatus {
-  sourceName: string;
-  loading: boolean;
-  error: string | null;
-}
-
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
@@ -41,44 +34,41 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedSourceFilter, setSelectedSourceFilter] = useState<string>("all");
   
-  // 跟踪每个源的搜索状态
-  const [sourceStatuses, setSourceStatuses] = useState<SourceSearchStatus[]>([]);
-  
   // Throttling ref
   const lastSearchTimeRef = useRef<number>(0);
   // 用于清理定时器
   const searchCleanupRef = useRef<(() => void) | null>(null);
+  // 用于跟踪搜索状态
+  const searchCompletionRef = useRef({
+    total: 0,
+    completed: 0,
+    successCount: 0
+  });
 
   useEffect(() => {
     if (!query || sources.length === 0) return;
 
     const performSearch = async () => {
+      // 重置状态
       setLoading(true);
       setError(null);
       setResults([]);
       
-      // 初始化每个源的搜索状态
-      const initialStatuses = sources.map(source => ({
-        sourceName: source.name,
-        loading: true,
-        error: null
-      }));
-      setSourceStatuses(initialStatuses);
+      // 重置搜索完成跟踪
+      searchCompletionRef.current = {
+        total: sources.length,
+        completed: 0,
+        successCount: 0
+      };
       
       // 清理之前的清理函数
       if (searchCleanupRef.current) {
         searchCleanupRef.current();
       }
 
-      // 创建一个数组来跟踪活动的源搜索
-      const activeSearches = sources.map(source => ({
-        sourceName: source.name,
-        completed: false
-      }));
-
       try {
         // 为每个源创建独立的搜索任务
-        sources.forEach(async (source, index) => {
+        sources.forEach(async (source) => {
           try {
             const response = await fetchVideoList(source.url, 1, undefined, query);
             const sourceResults = (response.list || []).map(item => ({
@@ -87,42 +77,31 @@ export default function SearchPage() {
               sourceUrl: source.url
             }));
             
-            // 更新结果状态
+            // 更新结果状态 - 每个源返回结果后立即更新
             setResults(prevResults => {
               const newResults = [...prevResults, ...sourceResults];
               return newResults;
             });
+            
+            // 增加成功计数
+            searchCompletionRef.current.successCount += 1;
           } catch (err) {
             console.error(`Failed to fetch from ${source.name}:`, err);
-            // 更新源状态为错误
-            setSourceStatuses(prev => prev.map(status => 
-              status.sourceName === source.name 
-                ? { ...status, loading: false, error: '搜索失败' } 
-                : status
-            ));
+            // 即使单个源出错也不影响其他源
           } finally {
-            // 更新源状态为完成
-            setSourceStatuses(prev => prev.map(status => 
-              status.sourceName === source.name 
-                ? { ...status, loading: false } 
-                : status
-            ));
-            
-            // 标记此源搜索为完成
-            const sourceIndex = activeSearches.findIndex(s => s.sourceName === source.name);
-            if (sourceIndex !== -1) {
-              activeSearches[sourceIndex].completed = true;
-            }
+            // 更新完成计数
+            searchCompletionRef.current.completed += 1;
             
             // 检查是否所有源都已完成
-            const allCompleted = activeSearches.every(search => search.completed);
-            if (allCompleted) {
-              // 所有搜索完成后，检查是否有结果
+            if (searchCompletionRef.current.completed >= searchCompletionRef.current.total) {
+              // 延迟检查最终结果
               setTimeout(() => {
+                // 检查是否有任何结果
                 setResults(currentResults => {
-                  if (currentResults.length === 0) {
+                  if (currentResults.length === 0 && searchCompletionRef.current.successCount === 0) {
                     setError('未找到相关结果');
                   }
+                  setLoading(false);
                   return currentResults;
                 });
               }, 100);
@@ -135,7 +114,6 @@ export default function SearchPage() {
         setError('搜索过程中发生错误');
         setLoading(false);
       } finally {
-        setLoading(false);
         lastSearchTimeRef.current = Date.now();
       }
     };
@@ -197,15 +175,6 @@ export default function SearchPage() {
     }))
   ], [sources, results.length, sourceCounts]);
 
-  // 计算是否仍在加载中（至少有一个源还在加载）
-  const isLoading = sourceStatuses.some(status => status.loading);
-  
-  // 计算已完成的源数量
-  const completedSources = sourceStatuses.filter(status => !status.loading).length;
-  
-  // 计算总源数量
-  const totalSources = sourceStatuses.length;
-
   return (
     <>
       <SettingsModal isOpen={isOpen} onOpenChange={onOpenChange} />
@@ -246,12 +215,9 @@ export default function SearchPage() {
           搜索结果: <span className="text-primary">{query}</span>
         </h1>
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-[50vh]">
-            <Spinner size="lg" color="secondary" />
-            <p className="mt-4 text-default-500">
-              正在搜索中... ({completedSources}/{totalSources} 个源已完成)
-            </p>
+        {loading && results.length === 0 ? (
+          <div className="flex justify-center items-center h-[50vh]">
+            <Spinner size="lg" label="正在全网搜索..." color="secondary" />
           </div>
         ) : error && results.length === 0 ? (
           <div className="flex justify-center items-center h-[30vh]">
