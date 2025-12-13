@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Card, 
   CardBody, 
@@ -26,18 +26,24 @@ export default function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
   const { sources } = useSettings();
-  const navigate = useNavigate();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedSourceFilter, setSelectedSourceFilter] = useState<string>("all");
+
+  // NOTE: Avoid using the literal key "all" because the underlying selection API may treat
+  // it as a special value (select-all). Using a dedicated sentinel prevents occasional
+  // mis-selection and wrong filtering.
+  const ALL_SOURCES_KEY = '__all_sources__';
+  const [selectedSourceFilter, setSelectedSourceFilter] = useState<string>(ALL_SOURCES_KEY);
   
   // Throttling ref
   const lastSearchTimeRef = useRef<number>(0);
   // 用于清理定时器
   const searchCleanupRef = useRef<(() => void) | null>(null);
+  // 用于忽略旧的搜索结果（防止并发/节流导致的“串结果”）
+  const searchTokenRef = useRef<number>(0);
   // 用于跟踪搜索状态
   const searchCompletionRef = useRef({
     total: 0,
@@ -49,6 +55,7 @@ export default function SearchPage() {
     if (!query || sources.length === 0) return;
 
     const performSearch = async () => {
+      const token = ++searchTokenRef.current;
       // 重置状态
       setLoading(true);
       setError(null);
@@ -71,6 +78,9 @@ export default function SearchPage() {
         sources.forEach(async (source) => {
           try {
             const response = await fetchVideoList(source.url, 1, undefined, query);
+            // 如果这次返回已经不是最新的一轮搜索，忽略
+            if (token !== searchTokenRef.current) return;
+
             const sourceResults = (response.list || []).map(item => ({
               ...item,
               sourceName: source.name,
@@ -79,6 +89,7 @@ export default function SearchPage() {
             
             // 更新结果状态 - 每个源返回结果后立即更新
             setResults(prevResults => {
+              if (token !== searchTokenRef.current) return prevResults;
               const newResults = [...prevResults, ...sourceResults];
               return newResults;
             });
@@ -89,6 +100,7 @@ export default function SearchPage() {
             console.error(`Failed to fetch from ${source.name}:`, err);
             // 即使单个源出错也不影响其他源
           } finally {
+            if (token !== searchTokenRef.current) return;
             // 更新完成计数
             searchCompletionRef.current.completed += 1;
             
@@ -96,8 +108,10 @@ export default function SearchPage() {
             if (searchCompletionRef.current.completed >= searchCompletionRef.current.total) {
               // 延迟检查最终结果
               setTimeout(() => {
+                if (token !== searchTokenRef.current) return;
                 // 检查是否有任何结果
                 setResults(currentResults => {
+                  if (token !== searchTokenRef.current) return currentResults;
                   if (currentResults.length === 0 && searchCompletionRef.current.successCount === 0) {
                     setError('未找到相关结果');
                   }
@@ -145,6 +159,15 @@ export default function SearchPage() {
     };
   }, [query, sources]);
 
+  // If the selected source was removed/edited in settings, fallback to "all"
+  useEffect(() => {
+    if (selectedSourceFilter === ALL_SOURCES_KEY) return;
+    const stillExists = sources.some(s => s.url === selectedSourceFilter);
+    if (!stillExists) {
+      setSelectedSourceFilter(ALL_SOURCES_KEY);
+    }
+  }, [sources, selectedSourceFilter]);
+
   const handlePlay = (id: number, sourceUrl: string) => {
     // 在新标签页中打开播放页面
     const url = `/play/${id}?source=${encodeURIComponent(sourceUrl)}`;
@@ -152,25 +175,25 @@ export default function SearchPage() {
   };
 
   const filteredResults = useMemo(() => {
-    if (selectedSourceFilter === "all") return results;
-    return results.filter(r => r.sourceName === selectedSourceFilter);
+    if (selectedSourceFilter === ALL_SOURCES_KEY) return results;
+    return results.filter(r => r.sourceUrl === selectedSourceFilter);
   }, [results, selectedSourceFilter]);
 
   // Group sources for the sidebar
   const sourceCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     results.forEach(r => {
-      counts[r.sourceName] = (counts[r.sourceName] || 0) + 1;
+      counts[r.sourceUrl] = (counts[r.sourceUrl] || 0) + 1;
     });
     return counts;
   }, [results]);
 
   const filterItems = useMemo(() => [
-    { key: "all", label: "全部", count: results.length, icon: "🌐" },
+    { key: ALL_SOURCES_KEY, label: "全部", count: results.length, icon: "🌐" },
     ...sources.map(source => ({
-      key: source.name,
+      key: source.url,
       label: source.name,
-      count: sourceCounts[source.name] || 0,
+      count: sourceCounts[source.url] || 0,
       icon: "📺"
     }))
   ], [sources, results.length, sourceCounts]);
@@ -192,11 +215,18 @@ export default function SearchPage() {
               items={filterItems}
               selectedKeys={new Set([selectedSourceFilter])}
               selectionMode="single"
+              disallowEmptySelection
               variant="flat"
               color="primary"
               onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0] as string;
-                setSelectedSourceFilter(selected);
+                // HeroUI/NextUI selection can be: Set<Key> | 'all'. Also allow empty set.
+                if (keys === 'all') {
+                  setSelectedSourceFilter(ALL_SOURCES_KEY);
+                  return;
+                }
+
+                const selected = Array.from(keys as Set<unknown>)[0];
+                setSelectedSourceFilter(selected ? String(selected) : ALL_SOURCES_KEY);
               }}
             >
               {(item) => (
@@ -234,7 +264,7 @@ export default function SearchPage() {
                 {filteredResults.map((video) => (
                   <Card 
                     shadow="sm" 
-                    key={`${video.sourceName}-${video.vod_id}`} 
+                    key={`${video.sourceUrl}-${video.vod_id}`} 
                     isPressable 
                     onPress={() => handlePlay(video.vod_id, video.sourceUrl)} 
                     className="border-none bg-transparent hover:scale-105 transition-transform duration-200"
